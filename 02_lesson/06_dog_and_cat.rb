@@ -50,3 +50,5 @@ p dave.speak              == "bark!"
 
 p bud.run                 == "running!"
 p bud.swim                == "can't swim!"
+
+p Bulldog.ancestors
