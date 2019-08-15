@@ -92,6 +92,9 @@ class TTTGame
     @computer = Player.new(COMPUTER_MARKER)
   end
 
+  def clear
+    system "clear"
+  end
 
   def display_welcome_message
     puts "Hello, Welcome to Tick Tack Toe!"
@@ -103,8 +106,12 @@ class TTTGame
     puts ""
   end
 
-  def display_board(clear = true)
-    system "clear" if clear
+  def display_board_and_clear_screen
+    clear
+    display_board
+  end
+
+  def display_board
     puts "You're a #{human.marker}. Computer is a #{computer.marker}."
     puts ""
     puts "     |     |"
@@ -138,7 +145,7 @@ class TTTGame
   end
 
   def display_result
-    display_board
+    display_board_and_clear_screen
 
     case board.detect_winner
     when human.marker
@@ -164,10 +171,10 @@ class TTTGame
 
   def play
     display_welcome_message
-    system "clear"
+    clear
 
     loop do
-      display_board(false)
+      display_board
 
       loop do
         human_moves
@@ -176,12 +183,12 @@ class TTTGame
         computer_moves
         break if board.someone_won? || board.full?
 
-        display_board
+        display_board_and_clear_screen
       end
       display_result
       break unless play_again?
       board.reset
-      system "clear"
+      clear
       puts "Let's play again!"
       puts ""
     end
