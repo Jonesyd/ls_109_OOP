@@ -156,8 +156,18 @@ class TTTGame
     puts ""
   end
 
+  def joinor(array, separator = ", ", word = "or" )
+    string = array[0..-2].join(separator)
+    case
+    when array.size == 1 then array[0].to_s
+    when array.size == 2 then "#{array[0]} #{word} #{array[1]}"
+    else
+      "#{string}#{separator}#{word} #{array[-1]}"
+    end
+  end
+
   def human_moves
-    puts "Choose a square (#{board.unmarked_keys.join(', ')}): "
+    puts "Choose a square (#{joinor(board.unmarked_keys)}): "  # use joinor method.
     square = nil
     loop do
       square = gets.chomp.to_i
