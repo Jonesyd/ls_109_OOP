@@ -1,3 +1,5 @@
+require "pry-byebug"
+
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # cols
@@ -34,6 +36,18 @@ class Board
     nil
   end
 
+  def next_move(mark)
+    WINNING_LINES.each do |line|
+      squares = @squares.values_at(*line)
+      if two_identical_markers?(squares, mark)
+        squares.each do |square|
+          return line[squares.index(square)] if square.marker == " "
+        end
+      end
+    end
+    nil
+  end
+
   def reset
     (1..9).each { |key| @squares[key] = Square.new }
   end
@@ -63,6 +77,12 @@ class Board
   end
 end
 
+def two_identical_markers?(squares, mark)
+  markers = squares.select(&:marked?).collect(&:marker)
+  return false if markers.count(mark) != 2
+  markers.min == markers.max
+end
+
 class Square
   INITIAL_MARKER = " "
 
@@ -87,11 +107,15 @@ end
 
 class Player
   attr_reader :marker
+  attr_accessor :score  # add score to attribute reader
 
   def initialize(marker)
     @marker = marker
+    @score = 0   # initialize score to zero
   end
 end
+
+
 
 class TTTGame
   HUMAN_MARKER = "X"
@@ -121,9 +145,9 @@ class TTTGame
       end
 
       display_result
-      break unless play_again?
-      reset
+      break unless play_again?  # need to reset
       display_play_again_message
+      reset
     end
 
     display_goodbye_message
@@ -149,8 +173,23 @@ class TTTGame
     @current_marker == HUMAN_MARKER
   end
 
+
+    def display_match_score
+      length = 50
+      puts ""
+      puts "Match score".center(length + 2)
+      puts "+" + "".center(length, "-") + "+"
+      puts "|" + "You: #{human.score} | Computer: #{computer.score}".center(length) + "|"
+      puts "+" + "".center(length, "-") + "+"
+      puts "|" + "  First to 5 wins!!!  ".center(length) + "|"
+      puts "+" + "".center(length, "-") + "+"
+      puts ""
+    end
+
   def display_board
     puts "You're a #{human.marker}. Computer is a #{computer.marker}."
+    puts ""
+    display_match_score
     puts ""
     board.draw
     puts ""
@@ -167,7 +206,7 @@ class TTTGame
   end
 
   def human_moves
-    puts "Choose a square (#{joinor(board.unmarked_keys)}): "  # use joinor method.
+    puts "Choose a square (#{joinor(board.unmarked_keys)}): "
     square = nil
     loop do
       square = gets.chomp.to_i
@@ -179,7 +218,14 @@ class TTTGame
   end
 
   def computer_moves
-    board[board.unmarked_keys.sample] = computer.marker
+    defensive_move = board.next_move(human.marker)
+    offensive_move = board.next_move(computer.marker)
+    case
+      when offensive_move then board[offensive_move] = computer.marker
+      when defensive_move then board[defensive_move] = computer.marker
+      else
+        board[board.unmarked_keys.sample] = computer.marker
+    end
   end
 
   def current_player_moves
@@ -198,17 +244,19 @@ class TTTGame
     case board.winning_marker
     when human.marker
       puts "You won!"
+      human.score += 1  # update_score()
     when computer.marker
       puts "Computer won!"
+      computer.score += 1  # update_score()
     else
       puts "It's a tie!"
     end
   end
 
-  def play_again?
+  def play_again?  # change this to be based on the match
     answer = nil
     loop do
-      puts "Would you like to play again? (y/n)"
+      puts "Would you like another match? (y/n)"
       answer = gets.chomp.downcase
       break if %w(y n).include? answer
       puts "Sorry, must be y or n"
@@ -227,8 +275,8 @@ class TTTGame
     clear
   end
 
-  def display_play_again_message
-    puts "Let's play again!"
+  def display_play_again_message  # update this too - only display on a new match.
+    puts "Let's play again!" # this seems to be lost at the moment - bring it back.
     puts ""
   end
 end
